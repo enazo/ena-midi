@@ -1,114 +1,187 @@
+class Tune {
+	constructor(config) {
 
-var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-var audioBuffers = {};
+		this.config = config;
 
+		const { 
 
-const notes = [
-	{
-		"name": "do",
-		"key": "1",
-		"filename": "200-do"
-	},
-	{
-		"name": "re",
-		"key": "2",
-		"filename": "201-re"
-	},
-	{
-		"name": "mi",
-		"key": "3",
-		"filename": "202-mi"
-	},
-	{
-		"name": "fa",
-		"key": "4",
-		"filename": "203-fa"
-	},
-	{
-		"name": "so",
-		"key": "5",
-		"filename": "204-so"
-	},
-	{
-		"name": "ra",
-		"key": "6",
-		"filename": "205-ra"
-	},
-	{
-		"name": "shi",
-		"key": "7",
-		"filename": "206-shi"
-	},
-	{
-		"name": "do",
-		"key": "8",
-		"filename": "207-do"
-	}
-];
-
-const keyToNote = notes.reduce(function (map, note) {
-	map[note.key] = note;
-	return map;
-}, {});
-
-const filenameToURL = filename => '/kitsu/' + filename + '.m4a';
+			tunes, 
+			appEl,
+			appWidth, appHeight, 
+			minInterval,
+		} = config;
 
 
-notes.forEach(function (note) {
-	const { name, filename } = note;
-	const el = document.createElement('button');
-	el.textContent = name;
-	el.addEventListener('click', function () {
-		playSound(note);
-	});
-	document.body.appendChild(el);
-	fetch(filenameToURL(filename))
-		.then(response => response.arrayBuffer())
-		.then(arrayBuffer => audioContext.decodeAudioData(arrayBuffer))
-		.then(audioBuffer => {
-			note.buffer = audioBuffer;
+		this.appWidth = appWidth;
+		this.appHeight = appHeight;
+		this.tuneWidth = appWidth / 3;
+
+		this.minInterval = minInterval || 200;
+
+		
+		this.appEl = appEl;
+		this.canvas = document.createElement('canvas');
+		this.canvas.width = appWidth;
+		this.canvas.height = appHeight;
+		appEl.querySelector('.tunes').appendChild(this.canvas);
+		this.ctx = this.canvas.getContext('2d');
+		this.ctx.fillStyle = 'black';
+
+		this.ctx.textAlign = "center";
+		this.ctx.textBaseline = "middle";
+
+		this.ctx.font = 'bold 30px sans-serif';
+		this.ctx.fillStyle = 'black';
+
+		this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+
+		const keyToTune = tunes.reduce( (map, tune) => {
+			map[tune.key] = tune;
+			return map;
+		}, {});
+
+		this.tunes = tunes;
+
+
+		window.addEventListener('keydown', event => {
+			var tune = keyToTune[event.key];
+			if (!tune) return;
+
+			const now = +Date.now();
+
+			console.log(tune.lastPlayed);
+			if (
+				tune.lastPlayed
+				&&
+				(now - tune.lastPlayed) < this.minInterval
+			) return;
+
+			tune.lastPlayed = now;
+
+			this.playSound(tune, loopSwitch.checked, filterSwitch.checked);
 		});
-});
 
 
-function playSound(note, loop, filter) {
-	var source = audioContext.createBufferSource();
-	source.buffer = note.buffer;
-	source.loop = loop;
+		this.canvas.addEventListener('click', e => {
+			e.preventDefault();
 
-	if (filter) {
-		// 创建一个低通滤波器
-		var biquadFilter = audioContext.createBiquadFilter();
-		biquadFilter.type = 'lowshelf';
-		biquadFilter.frequency.value = 200;
-		biquadFilter.gain.value = 25;
-		source.connect(biquadFilter);
-		biquadFilter.connect(audioContext.destination);
-	} else {
-		// 直接连接到音频输出
-		source.connect(audioContext.destination);
+			const x = e.offsetX;
+			const y = e.offsetY;
+
+			const index = Math.floor(x / this.tuneWidth) + Math.floor(y / this.tuneWidth) * 3;
+			const tune = this.tunes[index];
+
+			if(!tune) return;
+
+			this.playSound(tune, loopSwitch.checked, filterSwitch.checked);
+		});
+		// this.canvas.addEventListener('contextmenu', e => e.preventDefault());
+		this.canvas.addEventListener('mousedown', e => e.preventDefault());
+		// this.canvas.addEventListener('mouseup', e => e.preventDefault());
+
+		tunes.forEach( tune => {
+			const { name, filename } = tune;
+
+			tune.sources = [];
+			
+			fetch(this.filenameToURL(filename))
+				.then(response => response.arrayBuffer())
+				.then(arrayBuffer => this.audioContext.decodeAudioData(arrayBuffer))
+				.then(audioBuffer => {
+					tune.buffer = audioBuffer;
+				});
+		});
+
+		this.drawCanvas();
 	}
 
-	source.start();
+	drawCanvas(){
+		const { appWidth, appHeight,  } = this.config;
+		this.ctx.clearRect(0, 0, appWidth, appHeight);
+		
+		const { tuneWidth } = this;
+		this.tunes.forEach( (tune, index) => {
+			const x = (index % 3) * tuneWidth;
+			const y = Math.floor(index/3) * tuneWidth;
+
+
+
+			const active = tune.sources.length > 0;
+			if(active){
+
+				const lastSource = tune.sources[tune.sources.length - 1];
+				// 获取当前播放源 播放进度
+				const { currentTime } = this.audioContext;
+				const duration = lastSource.buffer.duration;
+
+
+				// todo 这里还要记录下当前 source 开始播放时间，减去当前时间，算出当前播放进度
+				console.log('duration', lastSource.buffer.duration);
+
+				this.ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+				this.ctx.fillRect(x, y, tuneWidth, tuneWidth);
+			}
+
+			this.ctx.fillStyle = 'black';
+			this.ctx.fillText(
+				tune.name, 
+				x + tuneWidth / 2, 
+				y + tuneWidth / 2, 
+			);
+		});
+
+		// 绘制 Loop 按钮
+
+		// 绘制 Filter 按钮
+
+	}
+
+	filenameToURL (filename) {
+		return '/kitsu/' + filename + '.m4a';
+	}
+
+	playSound (tune, loop, filter) {
+		var source = this.audioContext.createBufferSource();
+		source.buffer = tune.buffer;
+		// source.loop = loop;
+	
+		if (filter) {
+			// 创建一个低通滤波器
+			var biquadFilter = this.audioContext.createBiquadFilter();
+			biquadFilter.type = 'lowshelf';
+			biquadFilter.frequency.value = 200;
+			biquadFilter.gain.value = 25;
+			source.connect(biquadFilter);
+			biquadFilter.connect(this.audioContext.destination);
+		} else {
+			// 直接连接到音频输出
+			source.connect(this.audioContext.destination);
+		}
+	
+		source.start();
+
+		// // 标记播放中
+		// tune.active = true;
+
+		// tune.source = source;
+		tune.sources.push(source);
+
+		this.drawCanvas();
+
+		source.onended = () => {
+			source.disconnect();
+
+
+			// 需要处理多个 source 的情况
+			tune.sources = tune.sources.filter( s => s !== source );
+
+			// // 标记播放结束
+			// tune.active = false;
+
+			this.drawCanvas();
+
+		};
+	}
 }
 
-// 最小播放间隔时间
-const minInterval = 210;
-let lastPlayed = 0;
-window.addEventListener('keydown', function (event) {
-	var note = keyToNote[event.key];
-	if (!note) return;
-
-	const now = +Date.now();
-
-	console.log(note.lastPlayed);
-	if (
-		note.lastPlayed
-		&&
-		(now - note.lastPlayed) < minInterval
-	) return;
-
-	note.lastPlayed = now;
-
-	playSound(note, loopSwitch.checked, filterSwitch.checked);
-});
