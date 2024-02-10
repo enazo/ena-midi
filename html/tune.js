@@ -36,46 +36,13 @@ class Tune {
 		this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 
-		const keyToTune = tunes.reduce( (map, tune) => {
-			map[tune.key] = tune;
-			return map;
-		}, {});
-
 		this.tunes = tunes;
+		this.keyToTune = {};
 
 
-		window.addEventListener('keydown', event => {
-			var tune = keyToTune[event.key];
-			if (!tune) return;
+		window.addEventListener('keydown',e=>this.onKeyDown(e));
 
-			const now = +Date.now();
-
-			console.log(tune.lastPlayed);
-			if (
-				tune.lastPlayed
-				&&
-				(now - tune.lastPlayed) < this.minInterval
-			) return;
-
-			tune.lastPlayed = now;
-
-			this.playSound(tune, loopSwitch.checked, filterSwitch.checked);
-		});
-
-
-		this.canvas.addEventListener('click', e => {
-			e.preventDefault();
-
-			const x = e.offsetX;
-			const y = e.offsetY;
-
-			const index = Math.floor(x / this.tuneWidth) + Math.floor(y / this.tuneWidth) * 3;
-			const tune = this.tunes[index];
-
-			if(!tune) return;
-
-			this.playSound(tune, loopSwitch.checked, filterSwitch.checked);
-		});
+		this.canvas.addEventListener('click', e => this.onClick(e));
 		// this.canvas.addEventListener('contextmenu', e => e.preventDefault());
 		this.canvas.addEventListener('mousedown', e => e.preventDefault());
 		// this.canvas.addEventListener('mouseup', e => e.preventDefault());
@@ -84,6 +51,8 @@ class Tune {
 			const { name, filename } = tune;
 
 			tune.sources = [];
+
+			this.keyToTune[tune.key] = tune;
 			
 			fetch(this.filenameToURL(filename))
 				.then(response => response.arrayBuffer())
@@ -182,6 +151,44 @@ class Tune {
 			this.drawCanvas();
 
 		};
+	}
+
+	playTune (tune) {
+		
+		const now = +Date.now();
+
+		console.log(tune.lastPlayed);
+		if (
+			tune.lastPlayed
+			&&
+			(now - tune.lastPlayed) < this.minInterval
+		) return;
+
+		tune.lastPlayed = now;
+
+		this.playSound(tune, loopSwitch.checked, filterSwitch.checked);
+	}
+
+	onKeyDown(e){
+
+		const tune = this.keyToTune[e.key];
+		if (!tune) return;
+
+		this.playTune(tune);
+	}
+
+	onClick(e){
+		e.preventDefault();
+
+		const x = e.offsetX;
+		const y = e.offsetY;
+
+		const index = Math.floor(x / this.tuneWidth) + Math.floor(y / this.tuneWidth) * 3;
+		const tune = this.tunes[index];
+
+		if(!tune) return;
+
+		this.playTune(tune);
 	}
 }
 

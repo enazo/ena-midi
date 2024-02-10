@@ -6,19 +6,28 @@ html{
     -moz-osx-font-smoothing: grayscale;
 }
 body{
-    margin: 0;
+    margin: 0 auto;
+    max-width: 600px;
+}
+a{
+    text-decoration: none;
 }
 
 .app{
-    max-width: 900px;
     .tunes{
         position: relative;
-        a{
-            float: left;
-            width: 33.33%;
-        }
     }
     canvas{
         cursor: pointer;
+    }
+}
+
+
+.footer{
+    text-align: center;
+    padding: 40px;
+    a{
+        display: inline-block;
+        margin: 0 10px;
     }
 }
