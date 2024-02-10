@@ -69,6 +69,7 @@ class Tune {
 		const { appWidth, appHeight,  } = this.config;
 		this.ctx.clearRect(0, 0, appWidth, appHeight);
 		
+		// 绘制 Tune 九宫格
 		const { tuneWidth } = this;
 		this.tunes.forEach( (tune, index) => {
 			const x = (index % 3) * tuneWidth;
@@ -100,9 +101,11 @@ class Tune {
 			);
 		});
 
-		// 绘制 Loop 按钮
+		// todo 绘制停止按钮 ？
 
-		// 绘制 Filter 按钮
+		// todo 绘制 Loop 按钮
+
+		// todo 绘制 Filter 按钮
 
 	}
 
@@ -183,7 +186,19 @@ class Tune {
 		const x = e.offsetX;
 		const y = e.offsetY;
 
-		const index = Math.floor(x / this.tuneWidth) + Math.floor(y / this.tuneWidth) * 3;
+		const appNarWidth = this.canvas.offsetWidth / 3;
+
+		console.log(x,y,appNarWidth)
+
+		console.log(
+			Math.floor(x / appNarWidth),
+			Math.floor(y / appNarWidth) * 3
+		)
+
+		const index = 
+			Math.floor(x / appNarWidth) + 
+			Math.floor(y / appNarWidth) * 3;
+
 		const tune = this.tunes[index];
 
 		if(!tune) return;
