@@ -72,12 +72,22 @@ class Tune {
 
 
 		this.loop = false;
+
+		this.loopStartMs = undefined;
+		this.loopCycleMs = 3000;
+
 		this.buttons[9] = {
 			type: 'func',
 			text: 'Loop',
 			onClick: () => {
 				this.loop = !this.loop;
 				this.drawCanvas();
+
+				if(this.loop){
+					this.loopStart();
+				}else{
+					this.loopStop();
+				}
 			}
 		}
 
@@ -93,6 +103,30 @@ class Tune {
 
 		
 		this.drawCanvas();
+	}
+
+	loopStart(){
+		this.loopTunes = [];
+		this.loopStartMs = +new Date();
+		setTimeout(()=>{
+			this.runOneLoop();
+		},this.loopCycleMs);
+	}
+	loopStop(){
+		this.loopTunes = [];
+	}
+	runOneLoop(){
+		this.loopStartMs = +new Date();
+		this.loopTunes.forEach(loopTune=>{
+			this.playSound(
+				loopTune.tune,
+				loopTune.filter,
+				loopTune.ms
+			);
+		});
+		setTimeout(()=>{
+			this.runOneLoop();
+		},this.loopCycleMs);
 	}
 
 	drawCanvas(){
@@ -120,7 +154,14 @@ class Tune {
 
 				const tune = button;
 				text = tune.name;
+
 				active = tune.sources.length > 0;
+				// 需要修改成判断 这些 source 都在没在播放
+				tune.sources.find(source=>{
+					// 判断是否在播放
+
+				});
+
 				background = `hsl(${index * 50}deg, 100%, 90%)`;
 				if(active){
 					const lastSource = tune.sources[tune.sources.length - 1];
@@ -163,7 +204,8 @@ class Tune {
 		return '/kitsu/' + filename + '.m4a';
 	}
 
-	playSound (tune, loop, filter) {
+	playSound (tune, filter, ms = 0) {
+
 		var source = this.audioContext.createBufferSource();
 		source.buffer = tune.buffer;
 		// source.loop = loop;
@@ -180,8 +222,9 @@ class Tune {
 			// 直接连接到音频输出
 			source.connect(this.audioContext.destination);
 		}
-	
-		source.start();
+		
+		console.log(ms * 0.001)
+		source.start(this.audioContext.currentTime + ms * 0.001);
 
 		// // 标记播放中
 		// tune.active = true;
@@ -219,7 +262,22 @@ class Tune {
 
 		tune.lastPlayed = now;
 
-		this.playSound(tune, this.loop, this.filter);
+
+		if(this.loop){
+			// 如果是 开启循环时，要记录播放旋律开始时间
+			const now = +new Date();
+			const loopTune = {
+				ms: (now - this.loopStartMs) % this.loopCycleMs,
+				tune,
+				filter: this.filter
+			};
+
+			console.log(loopTune);
+
+			this.loopTunes.push(loopTune);
+		}
+
+		this.playSound(tune, this.filter);
 	}
 
 	onKeyDown(e){
