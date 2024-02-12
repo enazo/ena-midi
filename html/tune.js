@@ -76,6 +76,21 @@ class Tune {
 		this.loopStartMs = undefined;
 		this.loopCycleMs = 3000;
 
+
+		this.buttons[8] = {
+			type: 'func',
+			text: 'Stop',
+			onClick: () => {
+				this.loopStop();
+				this.loop = false;
+				this.filter = false;
+				this.tunes.forEach(tune=>{
+					tune.sources.forEach(source=>{
+						source.stop();
+					});
+				})
+			}
+		}
 		this.buttons[9] = {
 			type: 'func',
 			text: 'Loop',
