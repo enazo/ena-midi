@@ -148,7 +148,7 @@ class Tune {
 			text: 'Loop',
 			onClick: () => {
 				this.loop = !this.loop;
-				this.drawCanvas();
+				this._drawCanvas();
 
 				if(this.loop){
 					this.loopStart();
@@ -164,7 +164,7 @@ class Tune {
 			text: 'Echo',
 			onClick: () => {
 				this.echo = !this.echo;
-				this.drawCanvas();
+				this._drawCanvas();
 
 				if(this.echo){
 					this.echoDelay.apply();
@@ -184,7 +184,12 @@ class Tune {
 			}
 		}
 		
-		this.drawCanvas();
+		const runNextFrame = () => {
+			requestAnimationFrame(runNextFrame);
+			this.drawCanvas();
+		}
+
+		runNextFrame();
 	}
 
 	loopStart(){
@@ -237,23 +242,41 @@ class Tune {
 				const tune = button;
 				text = tune.name;
 
-				active = tune.sources.length > 0;
-				// 需要修改成判断 这些 source 都在没在播放
-				tune.sources.find(source=>{
-					// 判断是否在播放
+				// active = tune.sources.length > 0;
+				// // 需要修改成判断 这些 source 都在没在播放
 
+
+				// 240212
+				const nowMs = +new Date();
+				active = tune.sources.find(source=>{
+					if(!source.startTime) return;
+
+					// 判断是否在播放
+					console.log(source.startTime - nowMs, source.startTime, nowMs)
+					// 如果尚未开始播放，不算在播放
+					// const diffMs = nowMs - source.startTime;
+
+					// // 允许容差100ms
+					// if(diffMs < -100) return;
+					if(nowMs < source.startTime) return;
+
+					return true;
 				});
 
 				background = `hsl(${index * 50}deg, 100%, 90%)`;
 				if(active){
-					const lastSource = tune.sources[tune.sources.length - 1];
-					// 获取当前播放源 播放进度
-					const { currentTime } = this.audioContext;
-					const duration = lastSource.buffer.duration;
+
+
+					// todo 获取当前播放进度，并减淡颜色
+					
+					// const lastSource = tune.sources[tune.sources.length - 1];
+					// // 获取当前播放源 播放进度
+					// const { currentTime } = this.audioContext;
+					// const duration = lastSource.buffer.duration;
 	
 	
-					// todo 这里还要记录下当前 source 开始播放时间，减去当前时间，算出当前播放进度
-					console.log('duration', lastSource.buffer.duration);
+					// // todo 这里还要记录下当前 source 开始播放时间，减去当前时间，算出当前播放进度
+					// console.log('duration', lastSource.buffer.duration);
 	
 				}
 	
@@ -282,6 +305,10 @@ class Tune {
 
 	}
 
+	_drawCanvas(){
+		// this.drawCanvas();
+	}
+	
 	filenameToURL (filename) {
 		return '/kitsu/' + filename + '-v2.m4a';
 	}
@@ -319,13 +346,17 @@ class Tune {
 		const sourceStartTime = this.audioContext.currentTime + ms * 0.001;
 		source.start(sourceStartTime);
 
+		const nowMs = +new Date();
+		const startTime = nowMs + ms;
+
+		source.startTime = startTime;
 		// // 标记播放中
 		// tune.active = true;
 
 		// tune.source = source;
 		tune.sources.push(source);
 
-		this.drawCanvas();
+		this._drawCanvas();
 
 		source.onended = () => {
 			source.disconnect();
@@ -337,7 +368,7 @@ class Tune {
 			// // 标记播放结束
 			// tune.active = false;
 
-			this.drawCanvas();
+			this._drawCanvas();
 
 		};
 	}
