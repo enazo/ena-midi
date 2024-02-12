@@ -283,7 +283,7 @@ class Tune {
 	}
 
 	filenameToURL (filename) {
-		return '/kitsu/' + filename + '.m4a';
+		return '/kitsu/' + filename + '-v2.m4a';
 	}
 
 	playSound (tune, filter, ms = 0) {
