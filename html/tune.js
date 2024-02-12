@@ -181,7 +181,7 @@ class Tune {
 			type: 'func',
 			text: 'Record',
 			onClick: () => {
-				alert('还没写呢');
+				alert('录制功能还没写！先用别的屏幕录制啥的，或者帮我来写代码');
 			}
 		}
 		
