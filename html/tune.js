@@ -1,3 +1,40 @@
+
+function createEchoDelayEffect(audioContext) {
+    const delay = audioContext.createDelay(1);
+    const dryNode = audioContext.createGain();
+    const wetNode = audioContext.createGain();
+    const mixer = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
+
+    delay.delayTime.value = 0.75;
+    dryNode.gain.value = 1;
+    wetNode.gain.value = 0;
+    filter.frequency.value = 1100;
+    filter.type = "highpass";
+
+    return {
+		apply: function () {
+			wetNode.gain.setValueAtTime(0.75, audioContext.currentTime);
+		},
+		discard: function () {
+			wetNode.gain.setValueAtTime(0, audioContext.currentTime);
+		},
+		isApplied: function () {
+			return wetNode.gain.value > 0;
+		},
+		placeBetween: function (inputNode, outputNode) {
+			inputNode.connect(delay);
+			delay.connect(wetNode);
+			wetNode.connect(filter);
+			filter.connect(delay);
+
+			inputNode.connect(dryNode);
+			dryNode.connect(mixer);
+			wetNode.connect(mixer);
+			mixer.connect(outputNode);
+		},
+    };
+}
 class Tune {
 	constructor(config) {
 
@@ -34,6 +71,21 @@ class Tune {
 		this.ctx.fillStyle = 'black';
 
 		this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+
+		this.distortion = this.audioContext.createWaveShaper();
+		this.gainNode = this.audioContext.createGain();
+		
+		this.biquadFilter = this.audioContext.createBiquadFilter();
+		this.analyser = this.audioContext.createAnalyser();
+		this.analyser.minDecibels = -90;
+		this.analyser.maxDecibels = -10;
+		this.analyser.smoothingTimeConstant = 0.85;
+		this.convolver = this.audioContext.createConvolver();
+
+		this.echoDelay = createEchoDelayEffect(this.audioContext);
+
+		this.echoDelay.placeBetween(this.gainNode, this.analyser);
 
 
 		this.tunes = tunes;
@@ -79,7 +131,7 @@ class Tune {
 
 		this.buttons[8] = {
 			type: 'func',
-			text: 'Stop',
+			text: ':||',
 			onClick: () => {
 				this.loopStop();
 				this.loop = false;
@@ -113,9 +165,24 @@ class Tune {
 			onClick: () => {
 				this.filter = !this.filter;
 				this.drawCanvas();
+
+				if(this.filter){
+					this.echoDelay.apply();
+				}else{
+					if(this.echoDelay.isApplied()){
+						this.echoDelay.discard();
+					}
+				}
 			}
 		}
 
+		this.buttons[11] = {
+			type: 'func',
+			text: 'Record',
+			onClick: () => {
+				
+			}
+		}
 		
 		this.drawCanvas();
 	}
@@ -227,19 +294,30 @@ class Tune {
 	
 		if (filter) {
 			// 创建一个低通滤波器
-			var biquadFilter = this.audioContext.createBiquadFilter();
-			biquadFilter.type = 'lowshelf';
-			biquadFilter.frequency.value = 200;
-			biquadFilter.gain.value = 25;
-			source.connect(biquadFilter);
-			biquadFilter.connect(this.audioContext.destination);
+			// var biquadFilter = this.audioContext.createBiquadFilter();
+			// biquadFilter.type = 'lowshelf';
+			// biquadFilter.frequency.value = 200;
+			// biquadFilter.gain.value = 25;
+			
+			// source.connect(biquadFilter);
+			// biquadFilter.connect(this.audioContext.destination);
+
+
+			source.connect(this.distortion);
+			this.distortion.connect(this.biquadFilter);
+			this.biquadFilter.connect(this.gainNode);
+			this.convolver.connect(this.gainNode);
+			this.echoDelay.placeBetween(this.gainNode, this.analyser);
+			this.analyser.connect(this.audioContext.destination);
+
+
 		} else {
 			// 直接连接到音频输出
 			source.connect(this.audioContext.destination);
 		}
 		
-		console.log(ms * 0.001)
-		source.start(this.audioContext.currentTime + ms * 0.001);
+		const sourceStartTime = this.audioContext.currentTime + ms * 0.001;
+		source.start(sourceStartTime);
 
 		// // 标记播放中
 		// tune.active = true;
