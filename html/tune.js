@@ -93,8 +93,9 @@ class Tune {
 		this.buttons = [];
 
 
-
+		this.keyPressed = {};
 		window.addEventListener('keydown',e=>this.onKeyDown(e));
+		window.addEventListener('keyup',e=>this.onKeyUp(e));
 
 		this.canvas.addEventListener('click', e => this.onClick(e));
 		// this.canvas.addEventListener('contextmenu', e => e.preventDefault());
@@ -375,16 +376,16 @@ class Tune {
 
 	playTune (tune) {
 		
-		const now = +Date.now();
+		// const now = +Date.now();
 
-		console.log(tune.lastPlayed);
-		if (
-			tune.lastPlayed
-			&&
-			(now - tune.lastPlayed) < this.minInterval
-		) return;
+		// console.log(tune.lastPlayed);
+		// if (
+		// 	tune.lastPlayed
+		// 	&&
+		// 	(now - tune.lastPlayed) < this.minInterval
+		// ) return;
 
-		tune.lastPlayed = now;
+		// tune.lastPlayed = now;
 
 
 		if(this.loop){
@@ -410,11 +411,20 @@ class Tune {
 
 		console.log(key, keyCode);
 		
+		if(this.keyPressed[keyCode]) return;
+
+		this.keyPressed[keyCode] = true;
+		
 		const tune = this.keyToTune[keyCode];
 		if (tune){
 			this.playTune(tune);
 		}
 
+	}
+
+	onKeyUp(e){
+		let { key, keyCode } = e;
+		this.keyPressed[keyCode] = false;
 	}
 
 	onClick(e){
