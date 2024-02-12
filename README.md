@@ -5,14 +5,22 @@
 「绘名」是 绘谜画猜(enazo.cn) 的可爱小狐狸站娘。
 
 ## 在线地址
-
+https://enazo.cn/ena-midi/
 
 ## 功能
  - [x] 按键唱调
- - [ ] 节拍循环选项
+ - [x] 节拍循环选项
+ - [x] 停止按钮
+ - [x] Echo 效果器
+ - [ ] 升八度和降八度
  - [ ] 哼唱选项
  - [ ] 唱调滤镜选项
  - [ ] 录制音频
  - [ ] 实时可视化
  - [ ] 录制视频
  - [ ] 添加 Live2d 画面，配合唱调
+
+## 参考
+https://developer.mozilla.org/zh-CN/docs/Web/API/Web_Audio_API
+https://mdn.github.io/voice-change-o-matic/
+https://zhuanlan.zhihu.com/p/110278983
