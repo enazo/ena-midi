@@ -86,7 +86,7 @@ class Tune {
 		this.echoDelay = createEchoDelayEffect(this.audioContext);
 
 		this.echoDelay.placeBetween(this.gainNode, this.analyser);
-
+		this.echoDelay.apply();
 
 		this.tunes = tunes;
 		this.keyToTune = {};
@@ -166,13 +166,13 @@ class Tune {
 				this.echo = !this.echo;
 				this._drawCanvas();
 
-				if(this.echo){
-					this.echoDelay.apply();
-				}else{
-					if(this.echoDelay.isApplied()){
-						this.echoDelay.discard();
-					}
-				}
+				// if(this.echo){
+				// 	this.echoDelay.apply();
+				// }else{
+				// 	if(this.echoDelay.isApplied()){
+				// 		this.echoDelay.discard();
+				// 	}
+				// }
 			}
 		}
 
