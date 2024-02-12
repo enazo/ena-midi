@@ -4,13 +4,13 @@ function createEchoDelayEffect(audioContext) {
     const dryNode = audioContext.createGain();
     const wetNode = audioContext.createGain();
     const mixer = audioContext.createGain();
-    const filter = audioContext.createBiquadFilter();
+    const biquadFilter = audioContext.createBiquadFilter();
 
     delay.delayTime.value = 0.75;
     dryNode.gain.value = 1;
     wetNode.gain.value = 0;
-    filter.frequency.value = 1100;
-    filter.type = "highpass";
+    biquadFilter.frequency.value = 1100;
+    biquadFilter.type = "highpass";
 
     return {
 		apply: function () {
@@ -25,8 +25,8 @@ function createEchoDelayEffect(audioContext) {
 		placeBetween: function (inputNode, outputNode) {
 			inputNode.connect(delay);
 			delay.connect(wetNode);
-			wetNode.connect(filter);
-			filter.connect(delay);
+			wetNode.connect(biquadFilter);
+			biquadFilter.connect(delay);
 
 			inputNode.connect(dryNode);
 			dryNode.connect(mixer);
@@ -180,7 +180,7 @@ class Tune {
 			type: 'func',
 			text: 'Record',
 			onClick: () => {
-				
+				alert('还没写呢');
 			}
 		}
 		
