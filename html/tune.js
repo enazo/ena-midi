@@ -135,7 +135,7 @@ class Tune {
 			onClick: () => {
 				this.loopStop();
 				this.loop = false;
-				this.filter = false;
+				this.echo = false;
 				this.tunes.forEach(tune=>{
 					tune.sources.forEach(source=>{
 						source.stop();
@@ -158,15 +158,15 @@ class Tune {
 			}
 		}
 
-		this.filter = false;
+		this.echo = false;
 		this.buttons[10] = {
 			type: 'func',
-			text: 'Filter',
+			text: 'Echo',
 			onClick: () => {
-				this.filter = !this.filter;
+				this.echo = !this.echo;
 				this.drawCanvas();
 
-				if(this.filter){
+				if(this.echo){
 					this.echoDelay.apply();
 				}else{
 					if(this.echoDelay.isApplied()){
@@ -202,7 +202,7 @@ class Tune {
 		this.loopTunes.forEach(loopTune=>{
 			this.playSound(
 				loopTune.tune,
-				loopTune.filter,
+				loopTune.echo,
 				loopTune.ms
 			);
 		});
@@ -229,8 +229,8 @@ class Tune {
 				text = button.text;
 				if(button.text === 'Loop'){
 					active = this.loop;
-				}else if(button.text === 'Filter'){
-					active = this.filter;
+				}else if(button.text === 'Echo'){
+					active = this.echo;
 				}
 			}else if(button.type === 'tune'){
 
@@ -362,7 +362,7 @@ class Tune {
 			const loopTune = {
 				ms: (now - this.loopStartMs) % this.loopCycleMs,
 				tune,
-				filter: this.filter
+				echo: this.echo
 			};
 
 			console.log(loopTune);
@@ -370,7 +370,7 @@ class Tune {
 			this.loopTunes.push(loopTune);
 		}
 
-		this.playSound(tune, this.filter);
+		this.playSound(tune, this.echo);
 	}
 
 	onKeyDown(e){
