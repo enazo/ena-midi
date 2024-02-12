@@ -3,50 +3,50 @@
 const tunes = [
 	{
 		"name": "do",
-		key: "1",
-		button: "1",
+		key: 49,
+		button: 1,
 		"filename": "200-do"
 	},
 	{
 		"name": "re",
-		key: "2",
-		button: "2",
+		key: 50,
+		button: 2,
 		"filename": "201-re"
 	},
 	{
 		"name": "mi",
-		key: "3",
-		button: "3",
+		key: 51,
+		button: 3,
 		"filename": "202-mi"
 	},
 	{
 		"name": "fa",
-		key: "4",
-		button: "4",
+		key: 52,
+		button: 4,
 		"filename": "203-fa"
 	},
 	{
 		"name": "so",
-		key: "5",
-		button: "5",
+		key: 53,
+		button: 5,
 		"filename": "204-so"
 	},
 	{
 		"name": "ra",
-		key: "6",
-		button: "6",
+		key: 54,
+		button: 6,
 		"filename": "205-ra"
 	},
 	{
 		"name": "shi",
-		key: "7",
-		button: "7",
+		key: 55,
+		button: 7,
 		"filename": "206-shi"
 	},
 	{
 		"name": "do",
-		key: "8",
-		button: "8",
+		key: 56,
+		button: 8,
 		"filename": "207-do"
 	}
 ];

@@ -224,10 +224,15 @@ class Tune {
 
 	onKeyDown(e){
 
-		const tune = this.keyToTune[e.key];
-		if (!tune) return;
+		let { key, keyCode } = e;
 
-		this.playTune(tune);
+		console.log(key, keyCode);
+		
+		const tune = this.keyToTune[keyCode];
+		if (tune){
+			this.playTune(tune);
+		}
+
 	}
 
 	onClick(e){
